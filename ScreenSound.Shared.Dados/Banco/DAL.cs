@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ScreenSound.Modelos;
+using System.Linq;
 
 namespace ScreenSound.Banco
 {
@@ -32,7 +33,7 @@ namespace ScreenSound.Banco
             context.SaveChanges();
         }
 
-        public void Remover(T objeto)
+        public void Deletar(T objeto)
         {
             context.Set<T>().Remove(objeto);
             context.SaveChanges();
@@ -68,7 +69,17 @@ namespace ScreenSound.Banco
         #region especializado
         public T? RecuperarPor(Func<T, bool> condicao)
         {
-            return context.Set<T>().FirstOrDefault(condicao);
+            //int existe = context
+            //.GetType()
+            //.GetProperties()
+            //.Where(x => x.PropertyType == typeof(Musica)).Count();
+
+            //if (existe > 0)
+            //{
+            //    return context.Set<T>().Include( => x.Musicas).FirstOrDefault(condicao);
+            //}
+            IEnumerable<T> ret = context.Set<T>().Where(condicao).ToList();
+            return ret.FirstOrDefault();
         }
 
         public IEnumerable<T> ListarPor(Func<T, bool> condicao)
