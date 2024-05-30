@@ -1,0 +1,31 @@
+﻿@inject ArtistasAPI artistaAPI
+@page "/Artistas"
+
+<MudText Class="mb-4" Typo="Typo.h6">Artistas</MudText>
+
+@if (artistas is not null)
+{
+    <MudGrid>
+        @foreach (var artista in artistas)
+        {
+            <MudItem lg="3">
+                <CardArtista Artista="artista" />
+            </MudItem>
+        }
+    </MudGrid>
+}
+else
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+
+@code {
+    private ICollection<ArtistaResponse> artistas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        artistas = await artistaAPI.GetArtistasAsync();
+    }
+}
