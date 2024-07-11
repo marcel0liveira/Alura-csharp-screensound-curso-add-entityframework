@@ -3,6 +3,9 @@ using ScreenSound.API.Requests;
 using ScreenSound.API.Response;
 using ScreenSound.Banco;
 using ScreenSound.Modelos;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace ScreenSound.API.Endpoints
 {
@@ -69,8 +72,21 @@ namespace ScreenSound.API.Endpoints
                 {
                     return Results.NotFound();
                 }
+
+                // atualiza nome
                 musicaAAtualizar.Nome = musica.Nome;
+                // atualiza ano lancamento
                 musicaAAtualizar.AnoLancamento = musica.AnoLancamento;
+                // atualiza artista
+                musicaAAtualizar.ArtistaId = musica.ArtistaId;
+                musicaAAtualizar.Generos = musica.Generos.Select(a=> 
+                        new Genero()
+                        {
+                            Id = a.Id,
+                            Nome = a.Nome,
+                            Descricao = a.Descricao
+                        }
+                    ).ToList();
 
                 dal.Atualizar(musicaAAtualizar);
                 return Results.Ok();
@@ -118,8 +134,16 @@ namespace ScreenSound.API.Endpoints
 
         private static MusicaResponse EntityToResponse(Musica musica)
         {
-            return new MusicaResponse(musica.Id, musica.Nome!, musica.Artista!.Id, musica.Artista.Nome);
-        }
+            IEnumerable<GeneroResponse>? generos = null;
 
+            if (musica!.Generos is not null)
+            {
+                generos = musica!.Generos!.Select(
+                        g => new GeneroResponse(g.Id, g.Nome, g.Descricao)
+                    ).ToList();
+            }
+
+            return new MusicaResponse(musica.Id, musica.Nome!, musica.Artista!.Id, musica.Artista.Nome, musica.AnoLancamento, (ICollection<GeneroResponse>?)generos);
+        }
     }
 }

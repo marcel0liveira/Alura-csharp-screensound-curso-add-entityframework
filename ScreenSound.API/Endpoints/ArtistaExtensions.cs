@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using ScreenSound.API.Requests;
 using ScreenSound.API.Response;
 using ScreenSound.Banco;
 using ScreenSound.Modelos;
+using System.Runtime.CompilerServices;
 
 namespace ScreenSound.API.Endpoints
 {
@@ -35,14 +37,26 @@ namespace ScreenSound.API.Endpoints
                 return Results.Ok(EntityToResponse(artista));
             });
 
-            app.MapPost("/Artistas", ([FromServices] DAL<Artista> dal, [FromBody] ArtistaRequest artistaRequest) =>
+            app.MapPost("/Artistas", async ([FromServices] IHostEnvironment env,[FromServices] DAL<Artista> dal,[FromBody] ArtistaRequest artistaRequest) =>
             {
                 if (artistaRequest is null)
                 {
                     return Results.NotFound();
                 }
 
-                var artista = new Artista(artistaRequest.Nome, artistaRequest.Bio);
+                var nome = artistaRequest.nome.Trim();
+                var imagemArtista = $"{DateTime.Now.ToString("yyyyMMddHHmmss")}.{nome}.jpg";
+                var path = Path.Combine(env.ContentRootPath, "wwwroot", "FotosPerfil", imagemArtista);
+
+                using MemoryStream ms = new MemoryStream(Convert.FromBase64String(artistaRequest.fotoPerfil!));
+                using FileStream fs = new(path, FileMode.Create);
+                await ms.CopyToAsync(fs);
+
+                var artista = new Artista(artistaRequest.nome, artistaRequest.bio)
+                {
+                    FotoPerfil = $"/FotosPerfil/{imagemArtista}"
+                };
+
                 dal.Adicionar(artista);
                 return Results.Ok();
             });

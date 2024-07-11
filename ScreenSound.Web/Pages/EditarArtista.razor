@@ -1,0 +1,90 @@
+﻿@inject ArtistasAPI artistasAPI
+@inject NavigationManager navigationManager
+
+@page "/EditarArtista/{NomeArtista}"
+
+<MudPaper Class="px-8 pt-2 pb-4 mx-12 my-8" Justify="Justify.Center">
+
+    <MudText Class="mt-8" Typo="Typo.h4">Editar Artista</MudText>
+
+    <MudForm>
+        @* Posso Omitir o ID pois ele vem no objeto "ArtistaResponse Artista"*@
+        <MudNumericField Disabled Class="mt-4"
+                          HideSpinButtons="true"
+                          Label="Id"
+                          @bind-Value="id"
+                          Variant="Variant.Outlined" />
+         <MudTextField Class="mt-4" T="string" Placeholder="Nome do Artista"
+                       Variant="Variant.Outlined"
+                       Label="Artista"
+                       @bind-Value="nome"
+                       Required="true"
+                       RequiredError="Campo obrigatório." />
+
+         <MudTextField Class="mt-4" T="string" Placeholder="Biografia do artista"
+                       Variant="Variant.Outlined"
+                       Label="Bio"
+                       @bind-Value="biografia"
+                       Lines="4"
+                       Required="true"
+                       RequiredError="Campo obrigatório." />
+
+         <MudStack Justify="Justify.FlexEnd" Row="true" Class="mt-5">
+             <MudButton Variant="Variant.Filled"
+                        @onclick="Voltar"
+                        Color="Color.Info"
+                        Class=" ml-auto">
+                 Voltar
+             </MudButton>
+             <MudButton Variant="Variant.Filled"
+                        @onclick="Deletar"
+                        Color="Color.Error"
+                        Class="ml-1">
+                 Deletar
+             </MudButton>
+             <MudButton Variant="Variant.Filled"
+                        @onclick="Editar"
+                        Color="Color.Primary"
+                        Class="ml-1">
+                 Salvar
+             </MudButton>
+         </MudStack>
+     </MudForm>
+ </MudPaper>
+
+ @code {
+    private int? id;
+    private string? nome;
+    private string? biografia;
+    [Parameter]
+    public string? NomeArtista { get; set; }
+
+    public ArtistaResponse Artista { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Artista = await artistasAPI.GetArtistaPorNomeAsync(NomeArtista!);
+
+        id = Artista?.Id;
+        nome = Artista!.Nome;
+        biografia = Artista!.Bio;
+    }
+
+    private async Task Deletar()
+    {
+        await artistasAPI.DeletarArtistaAsync(Artista!.Id);
+        navigationManager.NavigateTo("/Musicas");
+    }
+
+    private async Task Editar()
+    {
+        var request = new ArtistaRequestEdit(Artista!.Id, nome!, biografia!, Artista!.FotoPerfil);
+        await artistasAPI.UpdateArtistaAsync(request);
+        navigationManager.NavigateTo("/Artistas");
+    }
+
+    private void Voltar()
+    {
+        navigationManager.NavigateTo("/Artistas");
+    }
+}

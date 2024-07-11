@@ -1,0 +1,136 @@
+﻿@inject ArtistasAPI artistaAPI
+@inject GeneroAPI generoAPI
+@inject MusicasApi musicaAPI
+@inject NavigationManager navigationManager
+
+@page "/CadastrarMusica"
+
+<MudPaper Class="px-8 pt-2 pb-4 mx-12 my-8" Justify="Justify.Center">
+
+    <MudText Class="mt-8" Typo="Typo.h4">Cadastro de Música</MudText>
+
+    <MudForm>
+        @* Nome Musica *@
+        <MudTextField Class="mt-4" T="string" Placeholder="Nome da música/canção"
+                      @bind-Value="nome"
+                      Variant="Variant.Outlined"
+                      Required="true"
+                      RequiredError="Nome é obrigatório." />
+
+        @* Select Artista *@
+        <MudSelect Class="mt-4" T="ArtistaResponse" Label="Artistas"
+                   Variant="Variant.Filled"
+                   AnchorOrigin="Origin.BottomCenter"
+                   ToStringFunc="converterArtista"
+                   @bind-Value="artista">
+            @if (artistas is not null)
+            {
+                foreach (var _artista in artistas)
+                {
+                    <MudSelectItem Value="_artista" />
+                }
+            }
+        </MudSelect>
+
+        @* ano lancamento *@
+        <MudNumericField Class="mt-4"
+                         Step="1"
+                         Min="1900"
+                         Max="GetAnoLancamentoMax()"
+                         Placeholder="Ano de lançamento"
+                         @bind-Value="anoLancamento"
+                         Variant="Variant.Outlined"
+                         Required="true"
+                         RequiredError="Ano é obrigatório." />
+
+        @* multi select generos *@
+        <MudSelect Class="mt-4"
+                   Label="Gêneros"
+                   Variant="Variant.Filled"
+                   AnchorOrigin="Origin.BottomCenter"
+                   T="GeneroResponse"
+                   ToStringFunc="converterGenero"
+                   MultiSelection="true"
+                   @bind-SelectedValues="generosSelect">
+
+            @if (generos is not null)
+            {
+                foreach (var _genero in generos)
+                {
+                    <MudSelectItem Value="_genero" />
+                }
+            }
+            @* Alerta de seleção *@
+            @if (generosSelect is not null)
+            {
+                foreach (var genero in generosSelect)
+                {
+                    <MudAlert Severity="Severity.Info">@(genero.Nome) adicionado como gênero da música.</MudAlert>
+                }
+            }
+        </MudSelect>
+
+        @* Botoes Cadastrar/Voltar*@
+        <MudStack Justify="Justify.FlexEnd" Row="true" Class="mt-5">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Info"
+                       Class="ml-auto"
+                       OnClick="Voltar">
+                Voltar
+            </MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Class="ml-1"
+                       OnClick="Cadastrar">
+                Cadastrar
+            </MudButton>
+        </MudStack>
+    </MudForm>
+</MudPaper>
+
+@code {
+    private int? anoLancamento;
+    private string? nome;
+    private ArtistaResponse? artista;
+    // private GeneroResponse? genero;
+
+    private ICollection<ArtistaResponse>? artistas;
+    private ICollection<GeneroResponse>? generos;
+    private IEnumerable<GeneroResponse> generosSelect = new List<GeneroResponse>();
+
+    private int GetAnoLancamentoMax()
+    {
+        return DateTime.Now.AddYears(1).Year;
+    }
+
+    protected override async void OnInitialized()
+    {
+        artistas = await artistaAPI.GetArtistasAsync();
+        generos = await generoAPI.GetGenerosAsync();
+    }
+
+    private async Task Cadastrar()
+    {
+        ICollection<GeneroRequest>? generosRequest = new List<GeneroRequest>();
+
+        if (generosSelect is not null)
+        {
+            foreach (var genero in generosSelect)
+            {
+                generosRequest!.Add(new GeneroRequest(genero.Nome, genero.Descricao));
+            }
+        }
+
+        var request = new MusicaRequest(nome!, artista!.Id, (int)anoLancamento!, generosRequest);
+        await musicaAPI.AddMusicaAsync(request);
+        navigationManager.NavigateTo("/Artistas");
+    }
+
+    private async Task Voltar()
+    {
+        navigationManager.NavigateTo("/Artistas");
+    }
+
+    Func<ArtistaResponse, string> converterArtista = p => p?.Nome;
+    Func<GeneroResponse, string> converterGenero = p => p?.Nome;
+}

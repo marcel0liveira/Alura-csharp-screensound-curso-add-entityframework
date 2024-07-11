@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors();
+
 builder.Services.AddDbContext<ScreenSoundContext>((options) => {
     options
             .UseSqlServer(builder.Configuration["ConnectionStrings:ScreenSoundDB"])
@@ -32,6 +34,15 @@ builder.Services.Configure<JsonSerializerSettings>(options =>
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 var app = builder.Build();
+
+app.UseCors(x => x
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .SetIsOriginAllowed(origin => true)
+    .AllowCredentials()
+);
+
+app.UseStaticFiles();
 
 app.AddEndPointsArtistas();
 app.AddEndPointsMusicas();

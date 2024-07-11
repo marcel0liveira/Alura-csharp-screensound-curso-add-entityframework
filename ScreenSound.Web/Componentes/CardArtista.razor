@@ -1,0 +1,37 @@
+﻿<MudCard>
+    <MudCardMedia Image="@Imagem" />
+    <MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.h6">
+                @Artista!.Nome
+            </MudText>
+        </MudCardContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body2">
+            @Artista!.Bio
+        </MudText>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Color="Color.Info"
+                   Variant="Variant.Filled"
+                   Href=@($"/EditarArtista/{Artista!.Nome}")>
+            Detalhes
+        </MudButton>
+    </MudCardActions>
+</MudCard>
+
+
+@code {
+    [Parameter]
+    public ArtistaResponse? Artista { get; set; }
+
+    public string? Imagem { get; set; }
+
+    protected override void OnInitialized()
+    {
+        string foto = Artista!.FotoPerfil!;
+
+        Imagem = foto.Contains("Foto") ? $"https://localhost:7157/{foto}" : Artista!.FotoPerfil;
+    }
+}

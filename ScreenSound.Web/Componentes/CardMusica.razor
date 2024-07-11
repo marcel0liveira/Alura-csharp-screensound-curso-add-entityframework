@@ -1,0 +1,27 @@
+﻿<MudCard>
+    <MudCardMedia Image="images/cardArtista" />
+    <MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.h6">
+                @Musica!.Nome
+            </MudText>
+        </MudCardContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body2">
+            Artista/Banda: @Musica!.NomeArtista
+        </MudText>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Color="Color.Info"
+                   Variant="Variant.Filled"
+                   Href=@($"/EditarMusica/{Musica!.Nome}")>
+            Detalhes
+        </MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Parameter]
+    public MusicaResponse? Musica { get; set; }
+}
